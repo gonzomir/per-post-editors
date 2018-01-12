@@ -62,7 +62,7 @@ function ppeditor_user_has_cap ($all, $caps, $args) {
 	// Except for AJAX calls, the post is accessible via the global $post
 	$post_id = -1;
 	if ( !empty($post) ) $post_id = $post->ID;
-	else if (count($args) > 2) $post_id = $args[2];
+	if ( count($args) > 2 ) $post_id = $args[2];
 
 	//error_log('HAS_CAP? "' . ((count($caps) > 0) ? $caps[0] : '[]') . ' ' . count($args) . ' post? ' . (empty($post) ? 'NULL' : $post->ID) . ' post_id = ' . $post_id . ' user? ' . (empty($current_user) ? 'NULL' : $current_user->ID) . ' logged-in? ' . (is_user_logged_in() ? 'yes' : 'no'));
 
