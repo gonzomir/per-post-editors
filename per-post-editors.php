@@ -13,14 +13,11 @@ Author URI: http://lunarmobiscuit.com/
 
 class Editors {
 
-	protected $list_of_editors = '';
+	protected $list_of_editors = array();
 
-	function Editors ($data = '') {
-		if (is_array ($data)) {
-			$editors = $data['_ppeditor_editors'];
-			if ( !is_null($editors) ) {
-				$this->list_of_editors = $editors;
-			}
+	function __construct ( $editors = '' ) {
+		if ( ! is_null( $editors ) ) {
+			$this->list_of_editors = preg_split( '/,\s*/', $editors );
 		}
 	}
 
@@ -28,29 +25,29 @@ class Editors {
 		return $this->list_of_editors;
 	}
 
-	function get ($post_id) {
+	function get ( $post_id ) {
 		$this->list_of_editors = '';
 
-		if ( !empty($post_id) ) {
-			$meta = get_post_meta( $post_id, '_ppeditor_editors', true );
+		if ( !empty( $post_id ) ) {
+			$meta = get_post_meta( $post_id, '_ppeditor_editors', false );
 			if ( !is_null($meta) ) {
 				$this->list_of_editors = $meta;
 			}
 		}
 	}
 
-	function save ($post_id) {
-		if ( empty ($this->list_of_editors) ) {
-			delete_post_meta( $post_id, '_ppeditor_editors' );
-		} else {
-			update_post_meta( $post_id, '_ppeditor_editors', $this->list_of_editors );
+	function save ( $post_id ) {
+		delete_post_meta( $post_id, '_ppeditor_editors' );
+		if ( ! empty( $this->list_of_editors ) ) {
+			foreach( $this->list_of_editors as $editor ) {
+				add_post_meta( $post_id, '_ppeditor_editors', $editor );
+			}
 		}
 	}
 
 	function user_can_edit ($user) {
 		// Is the user specified?
-		$users = explode (',', $this->list_of_editors);
-		return in_array( $user->user_login, $users );
+		return in_array( $user->user_login, $this->list_of_editors );
 	}
 }
 
