@@ -68,7 +68,7 @@ function ppeditor_user_has_cap ($all, $caps, $args) {
 
 	// User must be logged in to have the write to edit posts/pages
 	if ( is_user_logged_in() ) {
-		if (count($caps) > 0) switch ($caps[0]) {
+		if ( count($caps) > 0 ) switch ($caps[0]) {
 			case 'edit_pages':
 			case 'edit_posts':
 				// Drop through when a page id is provided
@@ -93,8 +93,8 @@ function ppeditor_user_has_cap ($all, $caps, $args) {
 				}
 				// Edit all pages where the user is listed
 				$editors = new Editors();
-				$editors->get($post_id);
-				if ($editors->user_can_edit($current_user)) {
+				$editors->get( $post_id );
+				if ( $editors->user_can_edit( $current_user ) ) {
 					foreach ( (array) $caps as $cap ) {
 						$all[$cap] = true;
 					}
@@ -107,11 +107,11 @@ function ppeditor_user_has_cap ($all, $caps, $args) {
 }
 
 // Add Capabilties to the user (if appropriate)
-add_filter ('user_has_cap', 'ppeditor_user_has_cap', 99, 3);
+add_filter ( 'user_has_cap', 'ppeditor_user_has_cap', 99, 3 );
 
 function ppeditor_adding_custom_meta_boxes () {
 	if ( current_user_can ('administrator') || current_user_can ('edit_permissions') ) {
-		add_meta_box( 'ppeditor', __( 'Editors' ), 'ppeditor_addmeta', 'page' );
+		add_meta_box( 'ppeditor', __( 'Editors' ), 'ppeditor_addmeta', 'post' );
 	}
 }
 
@@ -120,23 +120,25 @@ function ppeditor_addmeta () {
 		global $post;
 
 		$editors = new Editors();
-		$editors->get($post->ID);
-?>
-<input type="hidden" name="ppeditor" value="true"/>
-<p><strong>Users who can edit this post/page</strong>: (login names) <input style="width: 90%" type="text" name="_ppeditor_editors" value="<?php echo esc_attr( $editors->get_list() ) ?>"/></p>
-<?php
+		$editors->get( $post->ID );
+		?>
+		<input type="hidden" name="ppeditor" value="true"/>
+		<p><strong>Users who can edit this post/page</strong>: (login names) <input style="width: 90%" type="text" name="_ppeditor_editors" value="<?php echo esc_attr( join( ',', $editors->get_list() ) ) ?>"/></p>
+		<?php
 	}
 }
 
-function ppeditor_save_post ($id) {
-	if (isset ($_POST['ppeditor'])) {
-		$editors = new Editors( $_POST );
-		$editors->save( $id );
+function ppeditor_save_post ( $post_id, $post, $update ) {
+	if ( isset( $_POST['ppeditor'] ) ) {
+		//if ( !$post_id ) $post_id = $post->ID;
+		$data = sanitize_text_field( $_POST['_ppeditor_editors'] );
+		$editors = new Editors( $data );
+		$editors->save( $post_id );
 	}
 }
 
 // Add a meta box to list per-page/post editors
 if (is_admin ()) {
-	add_action( 'add_meta_boxes_page', 'ppeditor_adding_custom_meta_boxes' );
-	add_action ( 'save_post', 'ppeditor_save_post');
+	add_action( 'add_meta_boxes_post', 'ppeditor_adding_custom_meta_boxes' );
+	add_action( 'save_post', 'ppeditor_save_post', 10, 3 );
 }
